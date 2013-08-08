@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="scripts/jquery-1.9.0.js"></script>
+    <script src="scripts/Random.js"></script>
+    <script src="scripts/Environment.js"></script>
+    <script src="scripts/Frame.js"></script>    
+    <script src="scripts/Block.js"></script>
+    <script src="scripts/Pair.js"></script>
+    <script src="scripts/Images.js"></script>
+    <script src="scripts/Asserts.js"></script>
+    <script src="scripts/Strings.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        Images.preload(function () {
+          new Game();
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <canvas id="canvas" width=600 height=600></canvas>
+  </body>
+</html>

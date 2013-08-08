@@ -1,0 +1,51 @@
+Mechanic: Oxygen
+  * Players are on a carbon-dioxide-rich planet, and need to enclose plants and
+    let them grow to generate oxygen.
+  * On the surface, oxygen slowly runs out.
+  * Players die permanently if oxygen runs out?
+  * how can players find their way to leaks?
+    - c02 sensors
+  * to make it hard to seal all openings:
+    - cave-ins: triggered by underground explosions, propagate upward in
+      lines (may or may not reach surface)
+    - meteorites create surface craters
+
+Mechanic: Mech Suit
+  * Players have very limited mining capabilities on their own, but can build a
+    mech suit that greatly increases this.
+  * built from parts which can be:
+    - found: wreckage blocks
+    - bought: full parts
+  * parts can fail, and accumulate wear (from falls or from normal use?)
+  * some mech parts can be used
+  * player has mech view where they can equip/unequip tools
+
+Environment: Block-based
+  * like 2d minecraft. can only add/remove whole blocks
+  * block types:
+    - outside blocks:
+      * acid: eats away rock, pools on surface
+      * lava: eats away at rock below it? pools under ground
+      * rock
+      * dirt: can be mined with hands
+    - inside blocks:
+      * water
+      * doors: can create chambers which are multi-room and therefore safer
+
+Environment: Generation/Representation
+  * caves which connect to surface should be long and hard to follow
+  * environment is 2D object of frames.
+    - has indices, but is an object so that they can be negative
+  * when we add a new frame:
+    - draw a random number of lines (0-3) through it
+    - for each line:
+        * pick a starting direction (-1 <= dx <= 1, -1 <= dy <= 1)
+          and line radius (0-3)
+        * keep stepping forward. each step:
+          - at each step, pick a direction within 1 of current
+            * if we're going diagonally, zero dx or dy
+            * if we're going hor/vert, unzero dx or dy
+            * also some chance of stopping
+          - draw a circle around current position with rad within 1 or previous
+            * to approximate a circle, draw in all directions, counting
+              diagonals as 1.5 blocks 
