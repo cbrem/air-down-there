@@ -1,24 +1,40 @@
+<!-- TODO: pick up with figuring out which frames do not shift
+     block-by-block, only in whole. -->
+
 <!DOCTYPE html>
 <html>
   <head>
     <script src="scripts/jquery-1.9.0.js"></script>
-    <script src="scripts/Random.js"></script>
-    <script src="scripts/Environment.js"></script>
-    <script src="scripts/Frame.js"></script>    
-    <script src="scripts/Block.js"></script>
-    <script src="scripts/Pair.js"></script>
-    <script src="scripts/Images.js"></script>
     <script src="scripts/Asserts.js"></script>
+    <script src="scripts/Block.js"></script>
+    <script src="scripts/Environment.js"></script>
+    <script src="scripts/Frame.js"></script>
+    <script src="scripts/Game.js"></script>
+    <script src="scripts/Images.js"></script>
+    <script src="scripts/Pair.js"></script>
+    <script src="scripts/Player.js"></script>
+    <script src="scripts/Random.js"></script>
+    <script src="scripts/StickySet.js"></script>
     <script src="scripts/Strings.js"></script>
+    <script src="scripts/Toolbars.js"></script>
     <script type="text/javascript">
       $(document).ready(function () {
+        Asserts.DEBUG = true;
         Images.preload(function () {
-          new Game();
+          var game = new Game();
+
+          // TODO: remove global reference.
+          window.game = game;
+          game.init();
         });
       });
     </script>
   </head>
   <body>
-    <canvas id="canvas" width=600 height=600></canvas>
+    <div id="top-toolbar"></div>
+    <!-- TODO: can I set the size of the canvas from javascript? or 
+         read it in instead of just picking dimensions in the game which match up? -->
+    <canvas id="canvas" width=640 height=400></canvas>
+    <div id="bottom-toolbar"></div>
   </body>
 </html>

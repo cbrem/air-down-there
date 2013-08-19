@@ -9,14 +9,13 @@
  * Frames every time that we draw the environment.
  * 
  * Params:
- *  - environment is the Environment that this Frame is a part of.
- *  - loc is a Pair given the Frame's location in the Environment.
+ *  - ctx: The context onto which all pieces of the Game will be drawn.
+ *  - indices: a (col, row) Pair giving the Frame's indices into the
+ *      Environment's this.frames_ object.
  */
-function Frame(environment, ctx, loc) {
-  // TODO: do we actually need environment here?
-  this.environment_ = environment;
+function Frame(ctx, indices) {
   this.ctx_ = ctx;
-  this.loc_ = loc;
+  this.indices_ = indices;
   this.blocks_ = [];
 
   this.fillWithBlocks_();
@@ -24,29 +23,28 @@ function Frame(environment, ctx, loc) {
 }
 
 /* Rows of Blocks in a Frame. */
-Frame.ROWS = 8;
+Frame.ROWS = 25;
 
 /* Columns of Blocks in a Frame. */
-Frame.COLS = 12;
-
-// TODO: Width and height in pixels shouldn't be defined here. Find a way to get
-// these from blocks, maybe in the constructor.
+Frame.COLS = 40;
 
 /*
  * Draw all Blocks in a Frame.
  *
  * Params:
- *  - offset: A Pair giving the number of pixels by which the upper-left corner
- *            of this Frame is offset from the upper-left corner of the canvas.
+ *  - frameOffset: A Pair giving the number of pixels by which the upper-left
+ *      corner of this Frame is offset from the upper-left corner of the canvas.
  */
-Frame.prototype.draw = function(offset) {
+Frame.prototype.draw = function(frameOffset) {
   for (var row = 0; row < Frame.ROWS; row++) {
     for (var col = 0; col < Frame.COLS; col++) {
       var block = this.blocks_[row][col];
       Asserts.assert(block !== undefined,
           Strings.format('Tried to draw undefined block at row=%s, col=%s.',
               row, col));
-      black.draw();
+      var blockOffset = Pair.add(
+        new Pair(col * Block.WIDTH, row * Block.HEIGHT), frameOffset);
+      block.draw(blockOffset);
     }
   }
 };
@@ -56,7 +54,7 @@ Frame.prototype.fillWithBlocks_ = function() {
   for (var row = 0; row < Frame.ROWS; row++) {
     this.blocks_[row] = [];
     for (var col = 0; col < Frame.COLS; col++) {
-      this.blocks_[row][col] = Block.randomBlock();
+      this.blocks_[row][col] = Block.randomBlock(this.ctx_);
     }
   }
 };
@@ -65,4 +63,3 @@ Frame.prototype.fillWithBlocks_ = function() {
 Frame.prototype.makeTunnels_ = function() {
   // TODO
 };
-

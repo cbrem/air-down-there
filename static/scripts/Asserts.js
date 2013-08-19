@@ -1,6 +1,9 @@
 /* Utility methods for failing if the app reaches an invalid state. */
 var Asserts = {};
 
+/* Asserts will only throw errors if this value is set to true. */
+Asserts.DEBUG = false;
+
 /* 
  * Throw an error if a condition is not true.
  *
@@ -9,11 +12,13 @@ var Asserts = {};
  *  - err: A message for the error to throw if the condition is false.
  */
 Asserts.assert = function(cond, err) {
-  if (cond === false) {
-    Asserts.fail(cond);
-  } else if (cond !== true) {
-    Asserts.fail(
-        Strings.format('Asserts.assert got non-boolean condition: %s.', cond));
+  if (Asserts.DEBUG) {
+	if (cond === false) 	{
+	  Asserts.fail(err);
+	} else if (cond !== true) {
+	  Asserts.fail(
+	      Strings.format('Asserts.assert got nonboolean condition: %s.', cond));
+	}
   }
 };
 
@@ -24,5 +29,7 @@ Asserts.assert = function(cond, err) {
  *  - err: The error message to use.
  */
 Asserts.fail = function(err) {
-  throw new Error(err);
+  if (Asserts.DEBUG) {
+  	throw new Error(err);
+  }
 };

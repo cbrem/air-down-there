@@ -1,82 +1,157 @@
+// TODO: how do we lead into the Game from the splash screen? maybe make a
+// seperate object?
+
 /*
- * Constructor for the Game class. A Game is the top-level class. When its
- * constructor is called, we create and run a new Game.
+ * Constructor for the Game class. A Game is the top-level object which runs
+ * "Air Down There" for a user.
  */
 function Game() {
   var $canvas = $('#canvas');
-  var ctx = $canvas[0].getContext('2d');
+  this.ctx_ = $canvas[0].getContext('2d');
 
-  // Map from the keycodes of currently pressed keys to true.
-  this.presses_ = {};
+  // Set of the key codes of keys that are currently pressed or released within
+  // the most recent timestep.
+  this.keyCodes_ = new StickySet();
 
-  this.environment_ = new Environment(ctx);
-  this.player_ = new Player(ctx);
+  // Offset between the current and initial positions of the canvas's upper-left
+  // corner.
+  this.upperLeft_ = new Pair(0, 0);
 
-  this.initListeners_();
-  this.initKeyResponses_();
+  this.paused_ = false;
+  this.shouldQuit_ = false;
+  this.toolbars_ = new Toolbars(this.ctx_);
 }
 
 /* Time between cycles, in ms. */
-Game.CYCLE_LENGTH = 100;
+Game.CYCLE_LENGTH = 50;
+
+/*
+ * Begins running the Game, and peforms modifications which affect the entire
+ * DOM (e.g. binding events to handlers).
+ */
+Game.prototype.init = function() {
+  this.initListeners_();
+  this.loadGame_();
+
+  // Begin the first cycle.
+  this.cycle_();
+};
+
+/* Leaves a currently running game. */
+Game.prototype.quit_ = function() {
+  // TODO: save scores, etc.
+  // TODO: should these be bound to document or window?
+  $(document).off('keydown');
+  $(document).off('keyup');
+};
 
 /* Refreshes the Game's model and view. */ 
-Game.prototype.cycle = function() {
+Game.prototype.cycle_ = function() {
   this.processPresses_();
+  if (!this.paused_) {
+    this.updateModel_();
+  }
   this.draw_();
 
-  setTimeout(function() {
-    this.cycle();
-  }.bind(this), Game.CYCLE_LENGTH);
+  if (this.shouldQuit_) {
+    // Quit the game if necessary.
+    this.quit_();
+  } else {
+    // Otherwise, keep the game running.
+    setTimeout(function() {
+        this.cycle_();
+    }.bind(this), Game.CYCLE_LENGTH);
+  }
+};
+
+/* 
+ * Attempts to fetch and load information about the last Game's Environment and
+ * Player. If no information exists, loads default information.
+ */
+Game.prototype.loadGame_ = function() {
+  // TODO: actually try and fetch old player and environment
+  this.player_ = new Player(this.ctx_);
+  this.environment_ = new Environment(this.ctx_);
+};
+
+/* Update the Game's internal representation of its state. */
+Game.prototype.updateModel_ = function() {
+  // TODO: maybe upgrade this so that the player can drift to the side of the
+  // screen when it gets too high, etc.
+  // TODO: this upperLeft_ part is gross. Maybe explain better? or make a
+  // constant for it?
+  this.upperLeft_ = Pair.sub(this.player_.loc,
+      new Pair(Frame.COLS * Block.WIDTH / 2,
+          Frame.ROWS * Block.HEIGHT / 2));
+
+  this.environment_.addFrames(this.upperLeft_);
+
+  // TODO: more
 };
 
 /* Main draw method. */
 Game.prototype.draw_ = function() {
-  this.environment_.draw(this.loc);
-  this.player_.draw(this.loc);
+  // Clear everything.
+  // TODO: make this less hard-coded?
+  this.ctx_.clearRect(0, 0, 640, 400);
+
+  this.environment_.draw(this.upperLeft_);
+  this.player_.draw();
+  this.toolbars_.draw();
 };
 
 /* Initializes all event listeners. */
 Game.prototype.initListeners_ = function() {
-  // If a key is pressed, add it to this.presses_.
-  // TODO: is this the right syntax?
-  $.on('keyPressed', function(e) {
-    var keyCode = e.code;
-    this.presses_[keyCode] = true;
+  // TODO: should these be bound to document or window?
+
+  // If a key is pressed, add it to this.keyCodes_.
+  $(document).on('keydown', function(e) {
+    var keyCode = e.which;
+    this.keyCodes_.add(keyCode);
   }.bind(this));
 
-  // If a key is released, remove it from this.presses_.
-  $.on('keyReleased', function(e) {
-    var keyCode = e.code;
-    delete this.presses_[keyCode];
+  // If a key is released, remove it from this.keyCodes_.
+  $(document).on('keyup', function(e) {
+    var keyCode = e.which;
+    this.keyCodes_.remove(keyCode);
   }.bind(this));
-};
-
-/* Leaves a currently running game. */
-Game.prototype.leave_ = function() {
-  // TODO: unbind event listeners, etc.
-  // TODO: is this the right syntax?
-  $.off('keyPressed');
-  $.off('keyReleased');
 };
 
 /*
- * Initializes a map from keycodes which the top-level Game class cares about
- * to functions which should be called if the keys with these keycodes are
- * pressed.
+ * Takes the action within the Game object corresponding to a given key code, if
+ * any.
+ * 
+ * Params:
+ *   - keyCode
  */
-Game.prototype.initKeyResponses_ = function() {
-  this.keyResponses_ = {
-    // TODO
-  };
+Game.prototype.respondToPress = function(keyCode) {
+  switch (keyCode) {
+    case 32:  // space
+    case 80:  // 'p'
+      this.paused_ = !this.paused_;
+      return;
+    case 27:  // escape
+    case 81:  // 'q'
+      this.confirmQuit_();
+      return;
+  }
 };
 
-/* Synchronously acts on every key that is current pressed. */
+/* Synchronously acts on every key that is currently pressed. */
 Game.prototype.processPresses_ = function() {
-  for (var keyCode in this.presses_) {
-    if (keyCode in this.player_.keyResponses) {
-      this.player_.keyResponses[keyCode]();
-    } else {
-      // TODO
-    }
+  var keyCodeArray = this.keyCodes_.toArray();  
+  for (var i = 0; i < keyCodeArray.length; i++) {
+    var keyCode = keyCodeArray[i];
+    this.respondToPress(keyCode);
+    this.player_.respondToPress(keyCode);
+    this.toolbars_.respondToPress(keyCode);
+  }
+  this.keyCodes_.clear();
+};
+
+/* Asks the user to confirm a desire to quit. */
+Game.prototype.confirmQuit_ = function() {
+  if (prompt('Do you really want to quit?')) {
+    this.shouldQuit_ = true;
   }
 };
