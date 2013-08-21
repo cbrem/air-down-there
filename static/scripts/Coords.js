@@ -3,7 +3,7 @@ var Coords = {};
 
 /* Gets pixel coordinates for the point directly at the center of a Frame. */
 Coords.getFramePixelCenter = function() {
-    return new Pair(Frame.COLS * Block.SIDE / 2, Frame.ROWS * Block.SIDE / 2);
+  return new Pair(Frame.COLS * Block.SIDE / 2, Frame.ROWS * Block.SIDE / 2);
 };
 
 /*
@@ -12,12 +12,25 @@ Coords.getFramePixelCenter = function() {
  * Frame).
  *
  * Params:
- *   - coords: The pixel coordinates, as an (x, y) Pair.
+ *   - pixels: The pixel coordinates, as an (x, y) Pair.
  */
-Coords.envIndicesFromEnvPixels = function(coords) {
-  var col = Math.floor(coords.x / (Frame.COLS * Block.SIDE));
-  var row = Math.floor(coords.y / (Frame.ROWS * Block.SIDE));
+Coords.envIndicesFromEnvPixels = function(pixels) {
+  var col = Math.floor(pixels.x / (Frame.COLS * Block.SIDE));
+  var row = Math.floor(pixels.y / (Frame.ROWS * Block.SIDE));
   return new Pair(col, row);
+};
+
+/*
+ * Gets the pixel location of a point within the Frame in which that point
+ * falls (measured relative to the upper-left corner of the Frame).
+ *
+ * Params:
+ *   - pixels: The pixel coordinates, as an (x, y) Pair.
+ */
+Coords.framePixelsFromEnvPixels = function(pixels) {
+  var envIndices = Coords.envIndicesFromEnvPixels(pixels);
+  var frameUpperLeft = Coords.envPixelsFromEnvIndices(envIndices);
+  return Pair.sub(pixels, frameUpperLeft);
 };
 
 /*

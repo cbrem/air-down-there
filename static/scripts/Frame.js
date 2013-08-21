@@ -20,7 +20,7 @@ function Frame(ctx, indices, environment, tunnelStartArray) {
   this.ctx_ = ctx;
   this.indices_ = indices;
   this.environment_ = environment;
-  this.blocks_ = new Grid();
+  this.blocks = new Grid();
 
   this.fillWithBlocks_();
   this.makeTunnels_(tunnelStartArray);
@@ -68,7 +68,7 @@ Frame.prototype.draw = function(frameOffset) {
   for (var row = 0; row < Frame.ROWS; row++) {
     for (var col = 0; col < Frame.COLS; col++) {
       var indices = new Pair(col, row);
-      var block = this.blocks_.get(indices);
+      var block = this.blocks.get(indices);
 
       // TODO: move this conversion to Coords?
       var blockOffset = Pair.add(
@@ -87,7 +87,7 @@ Frame.prototype.fillWithBlocks_ = function() {
     for (var col = 0; col < Frame.COLS; col++) {
       var indices = new Pair(col, row);
       var block = Block.randomBlock(this.ctx_);
-      this.blocks_.set(indices, block);
+      this.blocks.set(indices, block);
     }
   }
 };
@@ -227,5 +227,5 @@ Frame.prototype.carveSquare_ = function(center) {
  *   - indices: The position of the Block in the Frame as a (col, row) Pair.
  */
 Frame.prototype.clearBlock_ = function(indices) {
-  this.blocks_.set(indices, undefined);
+  this.blocks.set(indices, undefined);
 };

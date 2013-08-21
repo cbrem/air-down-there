@@ -4,9 +4,11 @@
  *
  * Params:
  *   - ctx: The context onto which all pieces of the Game will draw themselves.
+ *   - environement: The Environment in which the Player moves.
  */
-function Player(ctx) {
+function Player(ctx, environment) {
   this.ctx_ = ctx;
+  this.environment_ = environment;
   this.spriteSeries_ = new SpriteSeries(Player.PLAYER_SPRITE_SERIES, ctx);
 
   // The player's location, in pixels, relative to the Environment's origin.
@@ -14,9 +16,15 @@ function Player(ctx) {
   this.location = Coords.getFramePixelCenter();
 }
 
-/* Player sprite dimensions, in pixels. */
-Player.HEIGHT = 32;
-Player.WIDTH = 32;
+/* Player sprite dimensions, as multiples of Block.SIDE. */
+Player.HEIGHT = 2;
+Player.WIDTH = 2;
+
+/*
+ * The maximum number of blocks by which the player can move per cycle. This
+ * applies to horizontal movement and vertical movement independently.
+ */
+Player.BLOCKS_PER_CYCLE = 0.5;
 
 /* Name of the series of sprites to be drawn at the player's location. */
 Player.PLAYER_SPRITE_SERIES = 'mech';
@@ -31,33 +39,38 @@ Player.PLAYER_SPRITE_SERIES = 'mech';
 Player.prototype.respondToPress = function(keyCode) {
   switch (keyCode) {
     case '37':  // left arrow
-      this.move_(new Pair(-1 * Block.SIDE, 0));
+      this.move_(new Pair(-1 * Player.BLOCKS_PER_CYCLE * Block.SIDE, 0));
       return;
     case '38':  // up arrow
       // TODO: change to jump
-      this.move_(new Pair(0, -1 * Block.SIDE));
+      this.move_(new Pair(0, -1 * Player.BLOCKS_PER_CYCLE * Block.SIDE));
       return;
     case '39':  // right arrow
-      this.move_(new Pair(Block.SIDE, 0));
+      this.move_(new Pair(Player.BLOCKS_PER_CYCLE * Block.SIDE, 0));
       return;
     case '40':  // down arrow
-      this.move_(new Pair(0, Block.SIDE));
+      this.move_(new Pair(0, Player.BLOCKS_PER_CYCLE * Block.SIDE));
       return;
   }
 };
 
 /*
- * Moves the Player by a given distance.
+ * Moves the Player at most by a given distance. Actual movement may be less if
+ * there are obstacles in the way.
  * 
  * Params:
  *   - distance: A Pair giving the x and y distance by which to move the Player.
  */
 Player.prototype.move_ = function(distance) {
-  this.location = Pair.add(this.location, distance);
+  var targetLocation = Pair.add(this.location, distance);
+  this.location = this.environment_.getFurthestPossibleMovement(
+      this.location, targetLocation);
 };
 
 /* Draws the Player. */
 Player.prototype.draw = function() {
-  var dimensions = new Pair(2 * Block.SIDE, 2 * Block.SIDE);
-  this.spriteSeries_.draw(this.location, dimensions);
+  var location = Coords.getFramePixelCenter();
+  var dimensions =
+      new Pair(Player.WIDTH * Block.SIDE, Player.HEIGHT * Block.SIDE);
+  this.spriteSeries_.draw(location, dimensions);
 };

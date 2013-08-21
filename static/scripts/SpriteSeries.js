@@ -79,7 +79,28 @@ SpriteSeries.TYPES = {
   gold: [
     {
       src: 'minecraft_terrain.png',
+      snipX: 26,
+      snipY: 10,
+      snipWidth: 16,
+      snipHeight: 16
+    },
+    {
+      src: 'minecraft_terrain.png',
+      snipX: 26,
+      snipY: 42,
+      snipWidth: 16,
+      snipHeight: 16
+    },
+    {
+      src: 'minecraft_terrain.png',
       snipX: 10,
+      snipY: 42,
+      snipWidth: 16,
+      snipHeight: 16
+    },
+    {
+      src: 'minecraft_terrain.png',
+      snipX: 26,
       snipY: 42,
       snipWidth: 16,
       snipHeight: 16
@@ -97,58 +118,58 @@ SpriteSeries.TYPES = {
   mech: [
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 11,
+      snipX: 9,
       snipY: 105,
       snipWidth: 32,
       snipHeight: 32,
     },
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 53,
+      snipX: 51,
       snipY: 105,
       snipWidth: 32,
       snipHeight: 32,
     },
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 98,
+      snipX: 96,
       snipY: 105,
       snipWidth: 32,
       snipHeight: 32,
     },
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 140,
+      snipX: 138,
       snipY: 105,
       snipWidth: 32,
       snipHeight: 32,
     },
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 180,
+      snipX: 178,
       snipY: 105,
-      snipWidth: 42,
+      snipWidth: 32,
       snipHeight: 32,
     },
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 220,
+      snipX: 218,
       snipY: 105,
-      snipWidth: 42,
+      snipWidth: 32,
       snipHeight: 32,
     },
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 265,
+      snipX: 263,
       snipY: 105,
-      snipWidth: 42,
+      snipWidth: 32,
       snipHeight: 32,
     },
     {
       src: 'Ganbare_Goemon_3_mech.png',
-      snipX: 311,
+      snipX: 309,
       snipY: 105,
-      snipWidth: 42,
+      snipWidth: 32,
       snipHeight: 32,
     }
   ]

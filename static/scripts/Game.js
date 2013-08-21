@@ -70,8 +70,8 @@ Game.prototype.cycle_ = function() {
  */
 Game.prototype.loadGame_ = function() {
   // TODO: actually try and fetch old player and environment
-  this.player_ = new Player(this.ctx_);
   this.environment_ = new Environment(this.ctx_);
+  this.player_ = new Player(this.ctx_, this.environment_);
 };
 
 /* Update the Game's internal representation of its state. */
@@ -120,12 +120,14 @@ Game.prototype.initListeners_ = function() {
  */
 Game.prototype.respondToPress = function(keyCode) {
   switch (keyCode) {
-    case 32:  // space
-    case 80:  // 'p'
+    case '32':  // space
+    case '80':  // 'p'
+      // TODO: set up timer which keeps pause from being pressed many times on
+      // one keypress.
       this.paused_ = !this.paused_;
       return;
-    case 27:  // escape
-    case 81:  // 'q'
+    case '27':  // escape
+    case '81':  // 'q'
       this.confirmQuit_();
       return;
   }
@@ -135,10 +137,14 @@ Game.prototype.respondToPress = function(keyCode) {
 Game.prototype.processPresses_ = function() {
   var keyCodeArray = this.keyCodes_.toArray();  
   for (var i = 0; i < keyCodeArray.length; i++) {
+    // Fan each keyCode out to the Game's components, unless the Game is paused.
     var keyCode = keyCodeArray[i];
     this.respondToPress(keyCode);
-    this.player_.respondToPress(keyCode);
-    this.toolbars_.respondToPress(keyCode);
+    if (!this.paused_) {
+      this.player_.respondToPress(keyCode);
+      this.environment_.respondToPress(keyCode);
+      this.toolbars_.respondToPress(keyCode);
+    }
   }
   this.keyCodes_.clear();
 };

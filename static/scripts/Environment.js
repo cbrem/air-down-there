@@ -105,6 +105,30 @@ Environment.prototype.addFrame_ = function(indices) {
 };
 
 /*
+ * Gets the block at a pixel location in the Environment. Returns undefined if
+ * there is now block at this location.
+ *
+ * Params:
+ *   - envPixels: An (x, y) Pair giving the block's location, measured relative
+ *       to the Environment's origin.
+ */
+Environment.prototype.getBlock = function(envPixels) {
+  // Get the Frame which contains pixels. If there is no such Frame, return
+  // undefined.
+  var envIndices = Coords.envIndicesFromEnvPixels(envPixels);
+  var frame = this.frames_.get(envIndices);
+  if (frame === undefined) {
+    return undefined;
+  }
+
+  // If a Frame does contain pixels, return the particular block inside this
+  // Frame which contains pixels.
+  var framePixels = Coords.framePixelsFromEnvPixels(envPixels);
+  var frameIndices = Coords.frameIndicesFromFramePixels(framePixels);
+  return frame.blocks.get(frameIndices);
+};
+
+/*
  * Add a TunnelStart struct to the Array of TunnelStarts associated with
  * indices. This Array will be used to seed a Frame's tunnels when it is placed
  * at these same indices in this.frames_.
@@ -119,4 +143,39 @@ Environment.prototype.addTunnelStart = function(indices, tunnelStart) {
     this.tunnelStartArrays_.set(indices, []);
   }
   this.tunnelStartArrays_.get(indices).push(tunnelStart);
+};
+
+/*
+ * Given a current and target position, Returns a pixel coordinate Pair giving
+ * the furthest point between these positions to which the Player can move
+ * without colliding with Blocks.
+ *
+ * Params:
+ *   - current: The Player's current location, as an (x, y) pair of pixel
+ *       distances from the Environment's origin.
+ *   - target: The Player's target location, as an (x, y) pair of pixel
+ *       distances from the Environment's origin.
+ */
+Environment.prototype.getFurthestPossibleMovement = function(current, target) {
+  // TODO: this may need to be updated to ensure that it will work with
+  // non-square object. Specifically, it isn't enough to default back to current
+  // if target is occupied. We must go somewhere in the middle.
+
+  // Check whether any Blocks are blocking any point on the Player from moving
+  // to the target location. We only need to check a grid of points on the
+  // Player which are seperated by distances equal to the smallest possible
+  // unit of movement.
+  var blocked = false;
+  for (var i = 0; i < Player.WIDTH; i += Player.BLOCKS_PER_CYCLE) {
+    for (var j = 0; j < Player.HEIGHT; j += Player.BLOCKS_PER_CYCLE) {
+      var targetPixels =
+          Pair.add(target, new Pair(i * Block.SIDE, j * Block.SIDE));
+      var blockAtPixels = this.getBlock(targetPixels);
+      console.log(blockAtPixels);
+      if (blockAtPixels !== undefined) {
+        blocked = true;
+      }
+    }
+  }
+  return blocked ? current : target;
 };
