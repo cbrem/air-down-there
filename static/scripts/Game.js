@@ -23,7 +23,7 @@ function Game() {
 }
 
 /* Time between cycles, in ms. */
-Game.CYCLE_LENGTH = 50;
+Game.CYCLE_LENGTH = 0;
 
 /*
  * Begins running the Game, and peforms modifications which affect the entire
@@ -78,15 +78,9 @@ Game.prototype.loadGame_ = function() {
 Game.prototype.updateModel_ = function() {
   // TODO: maybe upgrade this so that the player can drift to the side of the
   // screen when it gets too high, etc.
-  // TODO: this upperLeft_ part is gross. Maybe explain better? or make a
-  // constant for it?
-  this.upperLeft_ = Pair.sub(this.player_.loc,
-      new Pair(Frame.COLS * Block.WIDTH / 2,
-          Frame.ROWS * Block.HEIGHT / 2));
-
+  this.upperLeft_ =
+      Pair.sub(this.player_.location, Coords.getFramePixelCenter());
   this.environment_.addFrames(this.upperLeft_);
-
-  // TODO: more
 };
 
 /* Main draw method. */

@@ -7,25 +7,25 @@
  */
 function Block(ctx, type) {
   Asserts.assert(type in Block.TYPES,
-      Strings.format("Block constructor given bad type: %s.", type));
+      Strings.format('Block constructor given bad type: %s.', type));
 
   this.ctx_ = ctx;
+  this.spriteSeries_;
 
   // Create a block with all the properties listed for the given type.
   var properties = Block.TYPES[type];
-  for (property in properties) {
-    if (property === "imgName") {
-      var name = properties["imgName"];
-      this.img = Images[name];
+  for (var property in properties) {
+    if (property === 'spriteSeriesType') {
+      var spriteSeriesType = properties['spriteSeriesType'];
+      this.spriteSeries_ = new SpriteSeries(spriteSeriesType, ctx);
     } else {
       this[property] = properties[property];
     }
   }
 }
 
-/* The width and height of one Block, in pixels. */
-Block.WIDTH = 16;
-Block.HEIGHT = 16;
+/* The length of one side of a Block, in pixels. Blocks must be square. */
+Block.SIDE = 16;
 
 /*
  * Draws a block at a given position.
@@ -35,25 +35,27 @@ Block.HEIGHT = 16;
  *       corner of the Block and that of the canvas.
  */
 Block.prototype.draw = function(blockOffset) {
-  this.ctx_.drawImage(this.img, this.img.snipX, this.img.snipY,
-      this.img.snipWidth, this.img.snipHeight, blockOffset.x, blockOffset.y,
-      Block.WIDTH, Block.HEIGHT);
+  this.spriteSeries_.draw(blockOffset, new Pair(Block.SIDE, Block.SIDE));
 };
 
 Block.MIXINS = {
-  "nothing": function () {},
+  'nothing': function () {},
 }
 
 Block.TYPES = {
-  "stone": {
-    "onCollide": Block.MIXINS.nothing,
-    "imgName": "stone"
+  stone: {
+    onCollide: Block.MIXINS.nothing,
+    spriteSeriesType: 'stone'
   },
-  "dirt": {
-    "onCollide": Block.MIXINS.nothing,
-    "imgName": "dirt"
+  dirt: {
+    onCollide: Block.MIXINS.nothing,
+    spriteSeriesType: 'dirt'
+  },
+  gold: {
+    onCollide: Block.MIXINS.nothing,
+    spriteSeriesType: 'gold'
   }
-}
+};
 
 /*
  * Creates a Block with a randomly-chosen type.
@@ -62,7 +64,8 @@ Block.TYPES = {
  *   - ctx: The context onto which all Game components draw.
  */
 Block.randomBlock = function (ctx) {
-  var types = Object.keys(Block.TYPES); //will not work on legacy browsers
+  // Will not work on legacy browsers. TODO: make a shim for this?
+  var types = Object.keys(Block.TYPES);
   var randType = Random.choice(types);
   return new Block(ctx, randType);
-}
+};

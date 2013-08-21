@@ -50,7 +50,7 @@ Strings.format = function(formatString) {
   if (parameters.length !== paramIndex) {
     // Note that we just use Asserts.assert with a formatted string here, as
     // this would cause infinite recursion.
-    Asserts.fail(Strings.format('String.format got %s parameters but used %s.',
+    Asserts.fail(Strings.format('Strings.format got %s parameters but used %s.',
         parameters.length, paramIndex));
   }
   return resultString;

@@ -1,3 +1,5 @@
+// TODO: Abstract 2D, infinite array out into Grid class.
+
 /*
  * Constructor for the environment module. An enviroment contains information
  * about object in the Game which are not the Player.
@@ -7,11 +9,14 @@
  */
 function Environment(ctx) {
   this.ctx_ = ctx;
-  this.frames_ = {};
+  this.tunnelStartArrays_ = new Grid();
+  this.frames_ = new Grid();
+  this.background_ =
+      new SpriteSeries(Environment.BACKGROUND_SPRITE_SERIES, ctx);
 }
 
-/* The image with this name will be drawn under the Blocks every cycle. */
-Environment.BACKGROUND_IMAGE_NAME = 'background';
+/* Name of the series of sprites to be drawn behind the blocks. */
+Environment.BACKGROUND_SPRITE_SERIES = 'background';
 
 /*
  * Takes the action within the Player object corresponding to a given key code,
@@ -35,18 +40,18 @@ Environment.prototype.respondToPress = function(keyCode) {
  */
 Environment.prototype.draw = function(upperLeft) {
   // Draw the background.
-  var img = Images[Environment.BACKGROUND_IMAGE_NAME];
-  this.ctx_.drawImage(img, img.snipX, img.snipY, img.snipWidth, img.snipHeight,
-      0, 0, Frame.COLS * Block.WIDTH, Frame.ROWS * Block.HEIGHT);
+  var location = new Pair(0, 0);
+  var dimensions = new Pair(Frame.COLS * Block.SIDE, Frame.ROWS * Block.SIDE);
+  this.background_.draw(location, dimensions);
 
   // Iterate over all four corners of the canvas, and draw the Frame which
   // contains each corner.
   for (var i = 0; i < 2; i++) {
     for (var j = 0; j < 2; j++) {
-      var screenCorner =
-          Pair.add(upperLeft, this.coordsFromIndices_(new Pair(i, j)));
-      var frameIndices = this.indicesFromCoords_(screenCorner);
-      var frame = this.getFrame_(frameIndices);
+      var screenCorner = Pair.add(upperLeft,
+          Coords.envPixelsFromEnvIndices(new Pair(i, j)));
+      var frameIndices = Coords.envIndicesFromEnvPixels(screenCorner);
+      var frame = this.frames_.get(frameIndices);
       Asserts.assert(frame !== undefined, Strings.format(
           'Environment.prototype.draw got undefined Frame at: %s.',
               frameIndices));
@@ -54,40 +59,11 @@ Environment.prototype.draw = function(upperLeft) {
       // Note that frameUpperLeft is not necessarily the same as
       // screenCorner, as frameUpperLeft is rounded to an upper-left corner,
       // while screenCornerCords is not.
-      var frameUpperLeft = this.coordsFromIndices_(frameIndices);
+      var frameUpperLeft = Coords.envPixelsFromEnvIndices(frameIndices);
       var frameOffset = Pair.sub(frameUpperLeft, upperLeft);
       frame.draw(frameOffset);
     }
   }
-};
-
-// TODO: definitely abstract this out into a library.
-/*
- * Gets the indices in this.frames_ of the frame which contains the given pixel
- * coords.
- *
- * Params:
- *   - coords: The pixel coordinates, as an (x, y) Pair.
- */
-Environment.prototype.indicesFromCoords_ = function(coords) {
-  var col = Math.floor(coords.x / (Frame.COLS * Block.WIDTH));
-  var row = Math.floor(coords.y / (Frame.ROWS * Block.HEIGHT));
-  return new Pair(col, row);
-};
-
-/*
- * Gets the pixel coordinates of the upper-left corner of a Frame at given
- * indices in this.frames_.
- *
- * Params:
- *   - indices: The Frame's location in this.frames_, as a (col, row) pair.
- */
-Environment.prototype.coordsFromIndices_ = function(indices) {
-  var col = indices.x;
-  var row = indices.y;
-  var x = col * Frame.COLS * Block.WIDTH;
-  var y = row * Frame.ROWS * Block.HEIGHT;
-  return new Pair(x, y);
 };
 
 /*
@@ -104,9 +80,10 @@ Environment.prototype.coordsFromIndices_ = function(indices) {
   // Iterate over all four corners of the canvas.
   for (var i = 0; i < 2; i++) {
     for (var j = 0; j < 2; j++) {
-      var coords = Pair.add(upperLeft, this.coordsFromIndices_(new Pair(i, j)));
-      var indices = this.indicesFromCoords_(coords);
-      if (this.getFrame_(indices) === undefined) {
+      var coords = Pair.add(upperLeft,
+          Coords.envPixelsFromEnvIndices(new Pair(i, j)));
+      var indices = Coords.envIndicesFromEnvPixels(coords);
+      if (this.frames_.get(indices) === undefined) {
         // There is no Frame covering this corner, so create one.
         this.addFrame_(indices);
       }
@@ -115,37 +92,31 @@ Environment.prototype.coordsFromIndices_ = function(indices) {
  };
 
 /*
- * Create a new Frame at a given row and col in the Environment.
+ * Create a new Frame at a given row and col in the Environment. Seed it with
+ * the tunnel starting points which adjacent Frames have left for it, if any.
  *
  * Params:
  *   - indices: The Frame's location, as a (col, row) Pair.
  */
 Environment.prototype.addFrame_ = function(indices) {
-  var col = indices.x;
-  var row = indices.y;
-
-  // Generate a new, empty row if necessary.
-  if (this.frames_[row] === undefined) {
-    this.frames_[row] = {};
-  }
-   
-  // Place a new cell in the given col number at the given row number.
-  this.frames_[row][col] = new Frame(this.ctx_, indices);
+  var tunnelStartArray = this.tunnelStartArrays_.get(indices);
+  var newFrame = new Frame(this.ctx_, indices, this, tunnelStartArray)
+  this.frames_.set(indices, newFrame);
 };
 
 /*
- * Gets the Frame at a given location from this.frames_.
+ * Add a TunnelStart struct to the Array of TunnelStarts associated with
+ * indices. This Array will be used to seed a Frame's tunnels when it is placed
+ * at these same indices in this.frames_.
  *
  * Params:
- *   - indices: The Frame's location in this.frames_ as a (col, row) Pair.
+ *   - indices: A (col, row) Pair giving the location in this.tunnelStartArrays_
+ *       of the TunnelStart Array to modify.
+ *   - tunnelStart: A TunnelStart struct to add to this Array.
  */
-Environment.prototype.getFrame_ = function(indices) {
-  var col = indices.x;
-  var row = indices.y;
-
-  // Ensure that undefined is returned if either the row or column is invalid.
-  if (this.frames_[row] === undefined) {
-    return undefined;
+Environment.prototype.addTunnelStart = function(indices, tunnelStart) {
+  if (this.tunnelStartArrays_.get(indices) === undefined) {
+    this.tunnelStartArrays_.set(indices, []);
   }
-  return this.frames_[row][col];
+  this.tunnelStartArrays_.get(indices).push(tunnelStart);
 };

@@ -1,5 +1,3 @@
-// TODO: Other methods? Maybe 'clone'?
-
 /* Constructor for the Pair class. A Pair has x and y properties and can be
  * added, subtracted, etc. */
 function Pair(x, y) {
@@ -8,7 +6,7 @@ function Pair(x, y) {
 }
 
 /*
- * Add two pairs together. Will not affect original pairs.
+ * Adds two pairs together. Will not affect original pairs.
  *
  * Params:
  *  - pair1
@@ -21,7 +19,7 @@ Pair.add = function(pair1, pair2) {
 };
 
 /*
- * Subtract one pair from another. Will not affect original pairs.
+ * Subtracts one pair from another. Will not affect original pairs.
  *
  * Params:
  *  - pair1: The pair to subtract from.
@@ -34,7 +32,7 @@ Pair.sub = function(pair1, pair2) {
 };
 
 /*
- * Multiply a pair by a constant. Will not affect original pair.
+ * Multiplies a pair by a constant. Will not affect original pair.
  *
  * Params:
  *  - pair
@@ -46,3 +44,20 @@ Pair.mult = function(pair, constant) {
   return new Pair(pair.x * constant, pair.y * constant);
 };
 
+/*
+ * Creates a Pair vector from polar coordinates.
+ *
+ * Params:
+ *   - r: The radius of the vector.
+ *   - theta: The direction of the vector.
+ */
+Pair.fromPolar = function(r, theta) {
+  var x = r * Math.cos(theta);
+  var y = r * Math.sin(theta);
+  return new Pair(x, y);
+};
+
+/* Returns a new Pair identical to this one. */
+Pair.prototype.clone = function() {
+  return new Pair(this.x, this.y); 
+};

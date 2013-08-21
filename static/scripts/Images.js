@@ -1,54 +1,36 @@
+// TODO: this is loading sprite sheets multiple times. This defeats the purpose
+// of using sprites. 
+
 var Images = {};
 
 /* Preload all images. */
 Images.preload = function (callback) {
-    Images.preloadOne(0, callback);
+    var srcs = Object.keys(Images.IMAGES);
+    Images.preloadOne(srcs, callback);
 };
 
 /* Preload one image, set onload for the next. */
-Images.preloadOne = function(index, callback) {
-  if (index >= Images.DATA.length) {
+Images.preloadOne = function(srcs, callback) {
+  if (srcs.length === 0) {
     callback();
     return;
   }
     
   // As soon as this image loads, begin loading the next one.
-  var nextData = Images.DATA[index];
-  var nextImg = new Image();
-  for (var property in nextData) {
-    nextImg[property] = nextData[property];
-  }
-  nextImg.onload = function () {
-    Images.preloadOne(index + 1, callback);
+  var nextSrc = srcs.shift();
+  var nextImg = Images.IMAGES[nextSrc];
+  nextImg.src = Images.ROOT + nextSrc;
+  nextImg.onload = function() {
+    Images.preloadOne(srcs, callback);
   };
-  Images[nextData.name] = nextImg;
 };
 
-/* Data about all images to be preloaded. */
-// TODO: change this into a class? maybe SpriteImage?
-Images.DATA = [
-  {
-    name: "stone",
-    src: "images/minecraft_terrain.png",
-    snipX: 10,
-    snipY: 10,
-    snipWidth: 16,
-    snipHeight: 16
-  },
-  {
-    name: "dirt",
-    src: "images/minecraft_terrain.png",
-    snipX: 42,
-    snipY: 10,
-    snipWidth: 16,
-    snipHeight: 16
-  },
-  {
-    name: "background",
-    src: "images/minecraft_environment.png",
-    snipX: 10,
-    snipY: 10,
-    snipWidth: 160,
-    snipHeight: 160
-  }
-];
+/* String which must be prepended to image filenames to get full paths. */
+Images.ROOT = 'images/';
+
+/* Pairs from image sources to the images associated with these filenames. */
+Images.IMAGES = {
+  'minecraft_terrain.png': new Image(),
+  'minecraft_environment.png': new Image(),
+  'Ganbare_Goemon_3_mech.png': new Image(),
+};
